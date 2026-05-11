@@ -1,0 +1,308 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.board{padding:1.25rem 0}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;gap:8px;flex-wrap:wrap}
+.toolbar-left{display:flex;align-items:center;gap:8px}
+.board-title{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.count-badge{font-size:12px;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:20px;padding:2px 10px}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap}
+.filter-btn{font-size:12px;padding:4px 12px;border:0.5px solid var(--color-border-secondary);border-radius:20px;background:transparent;color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.filter-btn.active,.filter-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.add-btn{font-size:13px;padding:6px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.add-btn:hover{background:var(--color-background-secondary)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--color-border-primary)}
+.card-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;margin-bottom:12px}
+.card-name{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px}
+.card-role{font-size:12px;color:var(--color-text-secondary);margin-bottom:10px}
+.card-meta{display:flex;flex-direction:column;gap:5px}
+.meta-row{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+.meta-label{min-width:48px;flex-shrink:0;color:var(--color-text-tertiary)}
+.meta-val{color:var(--color-text-secondary)}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:8px}
+.add-card{border:0.5px dashed var(--color-border-secondary);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:180px;color:var(--color-text-tertiary);font-size:13px;cursor:pointer;transition:all .15s;border-radius:var(--border-radius-lg)}
+.add-card:hover{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.plus-icon{width:32px;height:32px;border-radius:50%;border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:100;display:none;align-items:flex-start;justify-content:flex-end}
+.overlay.open{display:flex}
+.drawer{width:360px;max-width:96vw;height:100%;background:var(--color-background-primary);border-left:0.5px solid var(--color-border-tertiary);overflow-y:auto;display:flex;flex-direction:column}
+.drawer-header{padding:1rem 1.25rem;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--color-background-primary);z-index:1}
+.drawer-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.close-btn{background:transparent;border:none;font-size:18px;cursor:pointer;color:var(--color-text-secondary);padding:4px 8px;border-radius:var(--border-radius-md)}
+.close-btn:hover{background:var(--color-background-secondary)}
+.drawer-body{padding:1.25rem;flex:1;display:flex;flex-direction:column;gap:1.25rem}
+.drawer-avatar{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;flex-shrink:0}
+.drawer-top{display:flex;align-items:center;gap:14px}
+.drawer-name{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.drawer-role{font-size:13px;color:var(--color-text-secondary)}
+.drawer-pronouns{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.section{display:flex;flex-direction:column;gap:6px}
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary);font-weight:500}
+.section-value{font-size:13px;color:var(--color-text-secondary);line-height:1.6}
+.section-divider{border:none;border-top:0.5px solid var(--color-border-tertiary)}
+.private-section{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem}
+.private-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px;display:flex;align-items:center;gap:5px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:1rem 1.25rem;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between}
+.modal-body{padding:1.25rem;display:flex;flex-direction:column;gap:12px}
+.form-row{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:12px;color:var(--color-text-secondary)}
+.form-row input,.form-row select,.form-row textarea{width:100%;font-size:13px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary)}
+.form-row textarea{resize:vertical;min-height:60px;line-height:1.5}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-footer{padding:1rem 1.25rem;border-top:0.5px solid var(--color-border-tertiary);display:flex;justify-content:flex-end;gap:8px}
+.btn-primary{padding:7px 16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-text-primary);color:var(--color-background-primary);font-size:13px;cursor:pointer}
+.btn-secondary{padding:7px 16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-secondary);font-size:13px;cursor:pointer}
+.btn-primary:hover{opacity:.88}
+.btn-secondary:hover{background:var(--color-background-secondary)}
+</style>
+
+<h2 class="sr-only">Staff board template — interactive cards for each team member with profile details, supervision style, and feedback preferences</h2>
+
+<div class="board">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="board-title">Staff board</span>
+      <span class="count-badge" id="count-badge">3 members</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="filter-row" id="filter-row">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="written">Written feedback</button>
+        <button class="filter-btn" data-filter="real-time">Real-time feedback</button>
+        <button class="filter-btn" data-filter="async">Async feedback</button>
+      </div>
+      <button class="add-btn" id="open-modal-btn">+ Add member</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="overlay" id="drawer-overlay">
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <span class="drawer-title" id="drawer-title">Profile</span>
+      <button class="close-btn" id="close-drawer">&#x2715;</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span style="font-size:15px;font-weight:500;color:var(--color-text-primary)">Add team member</span>
+      <button class="close-btn" id="close-modal">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row"><label class="form-label">Full name *</label><input id="f-name" placeholder="Jane Smith"/></div>
+        <div class="form-row"><label class="form-label">Role / title *</label><input id="f-role" placeholder="Senior Designer"/></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label class="form-label">Pronouns</label><input id="f-pronouns" placeholder="she/her"/></div>
+        <div class="form-row"><label class="form-label">Year joined</label><input id="f-year" placeholder="2022"/></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label class="form-label">Horoscope sign</label>
+          <select id="f-sign">
+            <option value="">— select —</option>
+            <option>Aries</option><option>Taurus</option><option>Gemini</option><option>Cancer</option>
+            <option>Leo</option><option>Virgo</option><option>Libra</option><option>Scorpio</option>
+            <option>Sagittarius</option><option>Capricorn</option><option>Aquarius</option><option>Pisces</option>
+          </select>
+        </div>
+        <div class="form-row"><label class="form-label">How to give feedback</label>
+          <select id="f-feedback">
+            <option value="">— select —</option>
+            <option value="written">Written (async)</option>
+            <option value="real-time">Real-time / verbal</option>
+            <option value="async">Async message</option>
+            <option value="1:1">In 1:1 only</option>
+            <option value="any">Any style works</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row"><label class="form-label">Fun fact</label><input id="f-funfact" placeholder="Owns three chickens named after Supreme Court justices"/></div>
+      <div class="form-row"><label class="form-label">Supervision philosophy (how they like to be managed)</label><textarea id="f-supervision" placeholder="Prefers autonomy with weekly check-ins. Wants to know the why behind decisions."></textarea></div>
+      <div class="form-row"><label class="form-label">What motivates them</label><textarea id="f-motivation" placeholder="Creative challenges, team collaboration, clear impact"></textarea></div>
+      <div class="form-row"><label class="form-label">Work style</label>
+        <select id="f-workstyle">
+          <option value="">— select —</option>
+          <option>Deep focus / async-first</option>
+          <option>Collaborative / synchronous</option>
+          <option>Morning person</option>
+          <option>Flexible / context-dependent</option>
+          <option>Structured / routine-driven</option>
+        </select>
+      </div>
+      <div class="form-row" style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem">
+        <label class="form-label" style="margin-bottom:4px">Private manager notes <span style="color:var(--color-text-tertiary)">(not shared)</span></label>
+        <textarea id="f-notes" placeholder="Goals for this quarter, areas to watch, recent conversations..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="cancel-modal">Cancel</button>
+      <button class="btn-primary" id="save-member">Save member</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS=[
+  {bg:'#E6F1FB',text:'#0C447C'},
+  {bg:'#E1F5EE',text:'#085041'},
+  {bg:'#EEEDFE',text:'#3C3489'},
+  {bg:'#FAEEDA',text:'#633806'},
+  {bg:'#FBEAF0',text:'#72243E'},
+  {bg:'#EAF3DE',text:'#27500A'},
+];
+const FEEDBACK_TAGS={
+  'written':{label:'Written feedback',bg:'#E6F1FB',text:'#0C447C'},
+  'real-time':{label:'Real-time feedback',bg:'#EAF3DE',text:'#27500A'},
+  'async':{label:'Async message',bg:'#EEEDFE',text:'#3C3489'},
+  '1:1':{label:'1:1 only',bg:'#FAEEDA',text:'#633806'},
+  'any':{label:'Any style works',bg:'#F1EFE8',text:'#444441'},
+};
+const SAMPLE=[
+  {id:1,name:'Maya Rodriguez',role:'Senior Program Manager',pronouns:'she/her',year:'2019',sign:'Scorpio',funfact:'Ran a half-marathon in every US state — 23 down, 27 to go.',supervision:'Prefers autonomy with weekly 1:1 check-ins. Wants context and the why before being handed a task. Comes to you when blocked, not before.',feedback:'written',motivation:'Complex problems, visible impact, mentoring junior staff.',workstyle:'Deep focus / async-first',notes:'Targeting director track. Flagged interest in budget ownership next cycle.'},
+  {id:2,name:'Jordan Kim',role:'UX Researcher',pronouns:'they/them',year:'2021',sign:'Aquarius',funfact:'Can identify any typeface by sight. Wins every design trivia night.',supervision:'Thrives with clear deliverables and creative freedom on how to get there. Regular feedback loops preferred over big-batch reviews.',feedback:'real-time',motivation:'User advocacy, presenting findings, cross-team collaboration.',workstyle:'Collaborative / synchronous',notes:'Expressed interest in workshop facilitation. Pair with external stakeholder project.'},
+  {id:3,name:'Darnell Osei',role:'Operations Coordinator',pronouns:'he/him',year:'2023',sign:'Taurus',funfact:'Grows heirloom tomatoes and enters county fair competitions every summer.',supervision:'Appreciates structured onboarding and clear checklists. Building confidence — prefers affirmation alongside corrections.',feedback:'1:1',motivation:'Keeping things running smoothly, being the reliable backbone of the team.',workstyle:'Structured / routine-driven',notes:'Strong candidate for systems documentation project. Check in monthly on workload.'},
+];
+let members=[...SAMPLE];
+let activeFilter='all';
+let openId=null;
+
+function initials(name){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function colorFor(id){return COLORS[(id-1)%COLORS.length];}
+
+function renderGrid(){
+  const grid=document.getElementById('grid');
+  const filtered=activeFilter==='all'?members:members.filter(m=>m.feedback===activeFilter);
+  document.getElementById('count-badge').textContent=members.length+' member'+(members.length===1?'':'s');
+  grid.innerHTML='';
+  filtered.forEach(m=>{
+    const c=colorFor(m.id);
+    const ftag=FEEDBACK_TAGS[m.feedback];
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <div class="card-avatar" style="background:${c.bg};color:${c.text}">${initials(m.name)}</div>
+      <div class="card-name">${m.name}</div>
+      <div class="card-role">${m.role}</div>
+      <div class="card-meta">
+        ${m.sign?`<div class="meta-row"><span class="meta-label">Sign</span><span class="meta-val">${m.sign}</span></div>`:''}
+        ${m.funfact?`<div class="meta-row"><span class="meta-label">Fun fact</span><span class="meta-val">${m.funfact.slice(0,60)}${m.funfact.length>60?'…':''}</span></div>`:''}
+      </div>
+      ${ftag?`<div class="tag" style="background:${ftag.bg};color:${ftag.text}">${ftag.label}</div>`:''}
+    `;
+    card.addEventListener('click',()=>openDrawer(m.id));
+    grid.appendChild(card);
+  });
+  const addCard=document.createElement('div');
+  addCard.className='add-card';
+  addCard.innerHTML=`<div class="plus-icon">+</div><span>Add member</span>`;
+  addCard.addEventListener('click',()=>openModal());
+  grid.appendChild(addCard);
+}
+
+function openDrawer(id){
+  const m=members.find(x=>x.id===id);
+  if(!m)return;
+  openId=id;
+  const c=colorFor(m.id);
+  const ftag=FEEDBACK_TAGS[m.feedback];
+  document.getElementById('drawer-title').textContent=m.name;
+  document.getElementById('drawer-body').innerHTML=`
+    <div class="drawer-top">
+      <div class="drawer-avatar" style="background:${c.bg};color:${c.text}">${initials(m.name)}</div>
+      <div>
+        <div class="drawer-name">${m.name}</div>
+        <div class="drawer-role">${m.role}</div>
+        ${m.pronouns?`<div class="drawer-pronouns">${m.pronouns}${m.year?' &middot; Joined '+m.year:''}</div>`:''}
+      </div>
+    </div>
+    <hr class="section-divider"/>
+    ${m.sign?`<div class="section"><div class="section-label">Horoscope</div><div class="section-value">${m.sign}</div></div>`:''}
+    ${m.funfact?`<div class="section"><div class="section-label">Fun fact</div><div class="section-value">${m.funfact}</div></div>`:''}
+    <hr class="section-divider"/>
+    ${m.supervision?`<div class="section"><div class="section-label">Supervision philosophy</div><div class="section-value">${m.supervision}</div></div>`:''}
+    ${m.feedback?`<div class="section"><div class="section-label">How to give feedback</div><div class="section-value">${ftag?`<span class="tag" style="background:${ftag.bg};color:${ftag.text}">${ftag.label}</span>`:m.feedback}</div></div>`:''}
+    ${m.motivation?`<div class="section"><div class="section-label">What motivates them</div><div class="section-value">${m.motivation}</div></div>`:''}
+    ${m.workstyle?`<div class="section"><div class="section-label">Work style</div><div class="section-value">${m.workstyle}</div></div>`:''}
+    <hr class="section-divider"/>
+    <div class="private-section">
+      <div class="private-label">Private manager notes</div>
+      <div class="section-value">${m.notes||'<span style="color:var(--color-text-tertiary)">No notes added.</span>'}</div>
+    </div>
+  `;
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+
+function openModal(){
+  ['f-name','f-role','f-pronouns','f-year','f-funfact','f-supervision','f-motivation','f-notes'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.value='';
+  });
+  ['f-sign','f-feedback','f-workstyle'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.value='';
+  });
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+document.getElementById('close-drawer').addEventListener('click',()=>{
+  document.getElementById('drawer-overlay').classList.remove('open');
+});
+document.getElementById('drawer-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('drawer-overlay'))
+    document.getElementById('drawer-overlay').classList.remove('open');
+});
+document.getElementById('close-modal').addEventListener('click',()=>{
+  document.getElementById('modal-overlay').classList.remove('open');
+});
+document.getElementById('cancel-modal').addEventListener('click',()=>{
+  document.getElementById('modal-overlay').classList.remove('open');
+});
+document.getElementById('open-modal-btn').addEventListener('click',openModal);
+
+document.getElementById('save-member').addEventListener('click',()=>{
+  const name=document.getElementById('f-name').value.trim();
+  const role=document.getElementById('f-role').value.trim();
+  if(!name||!role){alert('Name and role are required.');return;}
+  const newId=members.length?Math.max(...members.map(m=>m.id))+1:1;
+  members.push({
+    id:newId,
+    name,role,
+    pronouns:document.getElementById('f-pronouns').value.trim(),
+    year:document.getElementById('f-year').value.trim(),
+    sign:document.getElementById('f-sign').value,
+    funfact:document.getElementById('f-funfact').value.trim(),
+    supervision:document.getElementById('f-supervision').value.trim(),
+    feedback:document.getElementById('f-feedback').value,
+    motivation:document.getElementById('f-motivation').value.trim(),
+    workstyle:document.getElementById('f-workstyle').value,
+    notes:document.getElementById('f-notes').value.trim(),
+  });
+  document.getElementById('modal-overlay').classList.remove('open');
+  renderGrid();
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    activeFilter=btn.dataset.filter;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGrid();
+  });
+});
+
+renderGrid();
+</script>
